@@ -1,11 +1,11 @@
-name: Add approved repository
+name: Add approved GitHub account
 
 on:
   issues:
     types: [labeled]
 
 jobs:
-  add-repo:
+  add-account:
     if: github.event.label.name == 'approved'
     runs-on: ubuntu-latest
 
@@ -21,24 +21,38 @@ jobs:
         run: |
           ISSUE_BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH")
 
-          NAME=$(echo "$ISSUE_BODY" | grep -m1 "^Repository name:" | sed 's/Repository name: //')
-          URL=$(echo "$ISSUE_BODY" | grep -m1 "^GitHub repository URL:" | sed 's/GitHub repository URL: //')
+          # Extract the URL from the Markdown template
+          ACCOUNT_URL=$(echo "$ISSUE_BODY" | grep -A1 "\*\*GitHub account URL:\*\*" | tail -n1 | sed 's/^[[:space:]]*//')
 
-          if [[ -z "$NAME" || -z "$URL" ]]; then
-            echo "Invalid issue format"
+          # Validate it looks like a GitHub URL
+          if [[ -z "$ACCOUNT_URL" || "$ACCOUNT_URL" != https://github.com/* ]]; then
+            echo "Invalid account URL: $ACCOUNT_URL"
             exit 1
           fi
 
-          jq --arg name "$NAME" --arg url "$URL" \
-            '.repositories += [{"name": $name, "url": $url}]' \
-            repos.json > repos.tmp.json
+          # Check if the account is already listed
+          if jq -e --arg url "$ACCOUNT_URL" '.accounts[]? | select(.url == $url)' accounts.json >/dev/null; then
+            echo "Account already exists in JSON"
+            exit 0
+          fi
 
-          mv repos.tmp.json repos.json
+          # Append to JSON
+          jq --arg url "$ACCOUNT_URL" \
+            '.accounts += [{"url": $url}]' \
+            accounts.json > accounts.tmp.json
+
+          mv accounts.tmp.json accounts.json
 
       - name: Commit changes
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add repos.json
-          git commit -m "Add repository: ${{ github.event.issue.title }}"
+          git add accounts.json
+          git commit -m "Add GitHub account: ${{ github.event.issue.title }}" || echo "No changes to commit"
           git push
+
+      - name: Close the issue
+        uses: peter-evans/close-issue@v4
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          comment: "This GitHub account has been approved and added to the list."
