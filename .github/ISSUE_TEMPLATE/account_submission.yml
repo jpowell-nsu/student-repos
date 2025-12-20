@@ -1,6 +1,6 @@
 name: GitHub Account Submission
 description: Submit your GitHub account to be added to the list
-title: "GitHub Account Submission: "
+title: "Student GitHub Account Submission"
 labels: ["account-submission"]
 
 body:
@@ -11,8 +11,7 @@ body:
       placeholder: John Doe
     validations:
       required: true
-
-body:
+      
   - type: input
     id: account_url
     attributes:
