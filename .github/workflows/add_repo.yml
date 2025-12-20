@@ -20,21 +20,15 @@ jobs:
       - name: Parse issue body and extract account URL
         id: parse
         run: |
-          # Read the issue body
-          ISSUE_BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH")
-
-          # Extract the URL from the issue body
-          ACCOUNT_URL=$(echo "$ISSUE_BODY" \
-            | grep -A1 "GitHub account URL" \
-            | tail -n1 \
-            | xargs)
-
-          # Validate GitHub user account URL
-          if [[ -z "$ACCOUNT_URL" || ! "$ACCOUNT_URL" =~ ^https://github\.com/[^/]+/?$ ]]; then
+          ACCOUNT_URL=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH" \
+            | grep -Eo 'https://github\.com/[^[:space:]/]+/?' \
+            | head -n1)
+      
+          if [[ -z "$ACCOUNT_URL" ]]; then
             echo "Invalid GitHub account URL: $ACCOUNT_URL"
             exit 1
           fi
-
+      
           echo "ACCOUNT_URL=$ACCOUNT_URL" >> $GITHUB_ENV
 
       - name: Ensure accounts.json exists
