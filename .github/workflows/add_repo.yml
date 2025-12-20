@@ -20,15 +20,25 @@ jobs:
       - name: Parse issue body and extract account URL
         id: parse
         run: |
-          ACCOUNT_URL=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH" \
+          ISSUE_BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH")
+
+          # Extract Name (first non-empty line after "Your name")
+          NAME=$(echo "$ISSUE_BODY" \
+            | grep -A1 "Your name" \
+            | tail -n1 \
+            | xargs)
+
+          # Extract GitHub URL
+          ACCOUNT_URL=$(echo "$ISSUE_BODY" \
             | grep -Eo 'https://github\.com/[^[:space:]/]+/?' \
             | head -n1)
       
-          if [[ -z "$ACCOUNT_URL" ]]; then
-            echo "Invalid GitHub account URL: $ACCOUNT_URL"
+          if [[ -z "$NAME" || -z "$ACCOUNT_URL" ]]; then
+            echo "Invalid submission. Name or GitHub URL missing."
             exit 1
           fi
       
+          echo "NAME=$NAME" >> $GITHUB_ENV
           echo "ACCOUNT_URL=$ACCOUNT_URL" >> $GITHUB_ENV
 
       - name: Ensure accounts.json exists
@@ -46,7 +56,8 @@ jobs:
           fi
 
           # Append the account
-          jq --arg url "$ACCOUNT_URL" '.accounts += [{"url": $url}]' accounts.json > accounts.tmp.json
+          jq --arg name "$NAME" --arg url "$ACCOUNT_URL" \
+            '.accounts += [{"name": $name, "url": $url}]' accounts.json > accounts.tmp.json
           mv accounts.tmp.json accounts.json
 
       - name: Commit and push changes
