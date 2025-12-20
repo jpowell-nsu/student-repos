@@ -1,79 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Student GitHub Accounts</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <title>Approved GitHub Accounts</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 0 20px;
-            line-height: 1.6;
-        }
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+      line-height: 1.6;
+    }
 
-        h1 {
-            text-align: center;
-        }
+    h1 {
+      text-align: center;
+    }
 
-        .actions {
-            text-align: center;
-            margin-bottom: 30px;
-        }
+    .actions {
+      text-align: center;
+      margin-bottom: 30px;
+    }
 
-        .actions a {
-            display: inline-block;
-            padding: 10px 16px;
-            background-color: #24292e;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-        }
+    .actions a {
+      display: inline-block;
+      padding: 10px 16px;
+      background-color: #24292e;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+    }
 
-        .actions a:hover {
-            background-color: #444;
-        }
+    .actions a:hover {
+      background-color: #444;
+    }
 
-        ul {
-            padding-left: 20px;
-        }
+    ul {
+      padding-left: 20px;
+    }
 
-        li {
-            margin-bottom: 10px;
-        }
+    li {
+      margin-bottom: 10px;
+    }
 
-        .note {
-            margin-top: 40px;
-            font-size: 0.9em;
-            color: #555;
-        }
-    </style>
+    .note {
+      margin-top: 40px;
+      font-size: 0.9em;
+      color: #555;
+    }
+  </style>
 </head>
 <body>
 
-<h1>Student GitHub Accounts</h1>
+<h1>Approved GitHub Accounts</h1>
 
-
- <!--   https://github.com/jpowell-nsu/student-repos/blob/main/ISSUE_TEMPLATE/repo_submission.yml -->
 <div class="actions">
-    <a href="https://github.com/jpowell-nsu/student-repos/issues/new?template=account_submission.yml">
-        Submit a Repository
-    </a>
+  <a href="https://github.com/YOUR_USERNAME/YOUR_REPO/issues/new?template=account_submission.yml">
+    Submit Your GitHub Account
+  </a>
 </div>
 
 <ul id="accountList">
   <li>Loading accounts…</li>
 </ul>
 
+<p class="note">
+If you would like your account removed from this list, please email me with the GitHub account URL.
+Submissions are reviewed before being added.
+</p>
+
 <script>
   const list = document.getElementById("accountList");
 
   fetch("accounts.json")
-    .then(r => r.json())
+    .then(response => {
+      if (!response.ok) throw new Error("Failed to load accounts.json");
+      return response.json();
+    })
     .then(data => {
       list.innerHTML = "";
+
       if (!data.accounts || data.accounts.length === 0) {
         const li = document.createElement("li");
         li.textContent = "No accounts approved yet.";
@@ -91,6 +98,13 @@
         li.appendChild(link);
         list.appendChild(li);
       });
+    })
+    .catch(error => {
+      list.innerHTML = "";
+      const li = document.createElement("li");
+      li.textContent = "Error loading accounts.";
+      list.appendChild(li);
+      console.error(error);
     });
 </script>
 
