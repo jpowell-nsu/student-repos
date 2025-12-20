@@ -26,9 +26,7 @@ jobs:
           NAME=$(echo "$ISSUE_BODY" | awk '/^### Your name/{getline; print}' | xargs)
 
           # Extract GitHub URL
-          ACCOUNT_URL=$(echo "$ISSUE_BODY" \
-            | grep -Eo 'https://github\.com/[^[:space:]/]+/?' \
-            | head -n1)
+          ACCOUNT_URL=$(echo "$ISSUE_BODY" | awk '/^### GitHub account URL/{getline; print}' | xargs)
       
           if [[ -z "$NAME" || -z "$ACCOUNT_URL" ]]; then
             echo "Invalid submission. Name or GitHub URL missing."
