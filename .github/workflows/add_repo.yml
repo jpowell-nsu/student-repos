@@ -20,19 +20,20 @@ jobs:
       - name: Parse issue body and extract account URL
         id: parse
         run: |
+          # Read the issue body
           ISSUE_BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH")
-
-          # Extract Name: line immediately after "### Your name"
-          NAME=$(echo "$ISSUE_BODY" | awk '/^### Your name/{getline; print}' | xargs)
-
-          # Extract GitHub URL
-          ACCOUNT_URL=$(echo "$ISSUE_BODY" | awk '/^### GitHub account URL/{getline; print}' | xargs)
-      
+          
+          # Extract the first non-empty line as the name
+          NAME=$(echo "$ISSUE_BODY" | sed '/^\s*$/d' | head -n1 | xargs)
+          
+          # Extract the first GitHub user URL
+          ACCOUNT_URL=$(echo "$ISSUE_BODY" | grep -Eo 'https://github\.com/[^[:space:]/]+/?' | head -n1)
+          
           if [[ -z "$NAME" || -z "$ACCOUNT_URL" ]]; then
             echo "Invalid submission. Name or GitHub URL missing."
             exit 1
           fi
-      
+          
           echo "NAME=$NAME" >> $GITHUB_ENV
           echo "ACCOUNT_URL=$ACCOUNT_URL" >> $GITHUB_ENV
 
