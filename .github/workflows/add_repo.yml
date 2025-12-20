@@ -6,7 +6,6 @@ on:
 
 jobs:
   add-account:
-    # Only run if the "approved" label is added
     if: github.event.label.name == 'approved'
     runs-on: ubuntu-latest
 
@@ -21,14 +20,17 @@ jobs:
       - name: Parse issue and extract account URL
         id: parse
         run: |
-          # Get the issue body
+          # Read the issue body
           ISSUE_BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH")
-          
-          # Extract the URL from the issue form (Markdown / YAML form works)
-          ACCOUNT_URL=$(echo "$ISSUE_BODY" | grep -A1 "\*\*GitHub account URL:\*\*" | tail -n1 | sed 's/^[[:space:]]*//')
 
-          # Validate that it is a GitHub URL
-          if [[ -z "$ACCOUNT_URL" || "$ACCOUNT_URL" != https://github.com/* ]]; then
+          # Extract the URL from the issue form and trim spaces/newlines
+          ACCOUNT_URL=$(echo "$ISSUE_BODY" \
+            | grep -A1 "\*\*GitHub account URL:\*\*" \
+            | tail -n1 \
+            | xargs)
+
+          # Validate that it looks like a GitHub user account URL
+          if [[ -z "$ACCOUNT_URL" || ! "$ACCOUNT_URL" =~ ^https://github\.com/[^/]+/?$ ]]; then
             echo "Invalid GitHub account URL: $ACCOUNT_URL"
             exit 1
           fi
@@ -43,12 +45,13 @@ jobs:
 
       - name: Add account to accounts.json
         run: |
-          # Prevent duplicates
+          # Skip if the account already exists
           if jq -e --arg url "$ACCOUNT_URL" '.accounts[]? | select(.url == $url)' accounts.json >/dev/null; then
             echo "Account already exists. Skipping."
             exit 0
           fi
 
+          # Append new account
           jq --arg url "$ACCOUNT_URL" '.accounts += [{"url": $url}]' accounts.json > accounts.tmp.json
           mv accounts.tmp.json accounts.json
 
@@ -60,8 +63,9 @@ jobs:
           git commit -m "Add GitHub account: $ACCOUNT_URL" || echo "No changes to commit"
           git push
 
-      - name: Close issue after approval
-        uses: peter-evans/close-issue@v3
-        with:
-          issue-number: ${{ github.event.issue.number }}
-          comment: "This GitHub account has been approved and added to the list."
+      - name: Close issue using GH CLI
+        run: |
+          gh issue close ${{ github.event.issue.number }} \
+            --comment "✅ This GitHub account has been approved and added to the list. Thanks for submitting!"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
