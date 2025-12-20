@@ -1,0 +1,8 @@
+{
+  "repositories": [
+    {
+      "name": "Example Project",
+      "url": "https://github.com/example/example-project"
+    }
+  ]
+}
