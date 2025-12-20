@@ -1,0 +1,44 @@
+name: Add approved repository
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  add-repo:
+    if: github.event.label.name == 'approved'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      issues: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Parse issue and update JSON
+        run: |
+          ISSUE_BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH")
+
+          NAME=$(echo "$ISSUE_BODY" | grep -m1 "^Repository name:" | sed 's/Repository name: //')
+          URL=$(echo "$ISSUE_BODY" | grep -m1 "^GitHub repository URL:" | sed 's/GitHub repository URL: //')
+
+          if [[ -z "$NAME" || -z "$URL" ]]; then
+            echo "Invalid issue format"
+            exit 1
+          fi
+
+          jq --arg name "$NAME" --arg url "$URL" \
+            '.repositories += [{"name": $name, "url": $url}]' \
+            repos.json > repos.tmp.json
+
+          mv repos.tmp.json repos.json
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add repos.json
+          git commit -m "Add repository: ${{ github.event.issue.title }}"
+          git push
