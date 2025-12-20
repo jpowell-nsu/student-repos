@@ -22,9 +22,8 @@ jobs:
         run: |
           ISSUE_BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH")
 
-          # Extract Name (first non-empty line after "Your name")
-          # Extract the first non-empty line as the name
-          NAME=$(echo "$ISSUE_BODY" | sed '/^\s*$/d' | head -n1 | xargs)
+          # Extract Name: line immediately after "### Your name"
+          NAME=$(echo "$ISSUE_BODY" | awk '/^### Your name/{getline; print}' | xargs)
 
           # Extract GitHub URL
           ACCOUNT_URL=$(echo "$ISSUE_BODY" \
