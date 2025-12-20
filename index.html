@@ -74,9 +74,9 @@ Submissions are reviewed before being added.
   const list = document.getElementById("accountList");
 
   fetch("accounts.json")
-    .then(response => {
-      if (!response.ok) throw new Error("Failed to load accounts.json");
-      return response.json();
+    .then(r => {
+      if (!r.ok) throw new Error("Failed to load accounts.json");
+      return r.json();
     })
     .then(data => {
       list.innerHTML = "";
@@ -88,25 +88,32 @@ Submissions are reviewed before being added.
         return;
       }
 
+      // Sort alphabetically by username
+      data.accounts.sort((a, b) => a.url.localeCompare(b.url));
+
       data.accounts.forEach(acc => {
         const li = document.createElement("li");
         const link = document.createElement("a");
+
+        // Extract GitHub username for display
+        const username = acc.url.replace(/^https:\/\/github\.com\//, "").replace(/\/$/, "");
         link.href = acc.url;
-        link.textContent = acc.url;
+        link.textContent = username;
         link.target = "_blank";
         link.rel = "noopener noreferrer";
+
         li.appendChild(link);
         list.appendChild(li);
       });
     })
-    .catch(error => {
+    .catch(err => {
       list.innerHTML = "";
       const li = document.createElement("li");
       li.textContent = "Error loading accounts.";
       list.appendChild(li);
-      console.error(error);
+      console.error(err);
     });
 </script>
-
+  
 </body>
 </html>
