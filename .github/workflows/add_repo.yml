@@ -1,4 +1,4 @@
-name: Add approved GitHub account
+name: Add Approved GitHub Account
 
 on:
   issues:
@@ -6,52 +6,61 @@ on:
 
 jobs:
   add-account:
+    # Only run if the "approved" label is added
     if: github.event.label.name == 'approved'
     runs-on: ubuntu-latest
 
     permissions:
       contents: write
-      issues: read
+      issues: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Parse issue and update JSON
+      - name: Parse issue and extract account URL
+        id: parse
         run: |
+          # Get the issue body
           ISSUE_BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH")
-
-          # Extract the URL from the Markdown template
+          
+          # Extract the URL from the issue form (Markdown / YAML form works)
           ACCOUNT_URL=$(echo "$ISSUE_BODY" | grep -A1 "\*\*GitHub account URL:\*\*" | tail -n1 | sed 's/^[[:space:]]*//')
 
-          # Validate it looks like a GitHub URL
+          # Validate that it is a GitHub URL
           if [[ -z "$ACCOUNT_URL" || "$ACCOUNT_URL" != https://github.com/* ]]; then
-            echo "Invalid account URL: $ACCOUNT_URL"
+            echo "Invalid GitHub account URL: $ACCOUNT_URL"
             exit 1
           fi
 
-          # Check if the account is already listed
+          echo "ACCOUNT_URL=$ACCOUNT_URL" >> $GITHUB_ENV
+
+      - name: Ensure accounts.json exists
+        run: |
+          if [ ! -f accounts.json ]; then
+            echo '{"accounts":[]}' > accounts.json
+          fi
+
+      - name: Add account to accounts.json
+        run: |
+          # Prevent duplicates
           if jq -e --arg url "$ACCOUNT_URL" '.accounts[]? | select(.url == $url)' accounts.json >/dev/null; then
-            echo "Account already exists in JSON"
+            echo "Account already exists. Skipping."
             exit 0
           fi
 
-          # Append to JSON
-          jq --arg url "$ACCOUNT_URL" \
-            '.accounts += [{"url": $url}]' \
-            accounts.json > accounts.tmp.json
-
+          jq --arg url "$ACCOUNT_URL" '.accounts += [{"url": $url}]' accounts.json > accounts.tmp.json
           mv accounts.tmp.json accounts.json
 
-      - name: Commit changes
+      - name: Commit and push changes
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add accounts.json
-          git commit -m "Add GitHub account: ${{ github.event.issue.title }}" || echo "No changes to commit"
+          git commit -m "Add GitHub account: $ACCOUNT_URL" || echo "No changes to commit"
           git push
 
-      - name: Close the issue
+      - name: Close issue after approval
         uses: peter-evans/close-issue@v4
         with:
           issue-number: ${{ github.event.issue.number }}
