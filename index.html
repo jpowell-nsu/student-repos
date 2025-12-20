@@ -63,55 +63,35 @@
     </a>
 </div>
 
-<ul id="repoList">
-    <li>Loading repositories…</li>
+<ul id="accountList">
+  <li>Loading accounts…</li>
 </ul>
 
-<p class="note">
-If you would like your repository removed from this list, please email me with the repository URL.
-Submissions are reviewed before being added.
-</p>
-
 <script>
-    const repoList = document.getElementById("repoList");
+  const list = document.getElementById("accountList");
 
-    fetch("repos.json")
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Failed to load repos.json");
-            }
-            return response.json();
-        })
-        .then(data => {
-            repoList.innerHTML = "";
+  fetch("accounts.json")
+    .then(r => r.json())
+    .then(data => {
+      list.innerHTML = "";
+      if (!data.accounts || data.accounts.length === 0) {
+        const li = document.createElement("li");
+        li.textContent = "No accounts approved yet.";
+        list.appendChild(li);
+        return;
+      }
 
-            if (!data.repositories || data.repositories.length === 0) {
-                const li = document.createElement("li");
-                li.textContent = "No repositories have been approved yet.";
-                repoList.appendChild(li);
-                return;
-            }
-
-            data.repositories.forEach(repo => {
-                const li = document.createElement("li");
-                const link = document.createElement("a");
-
-                link.href = repo.url;
-                link.textContent = repo.name;
-                link.target = "_blank";
-                link.rel = "noopener noreferrer";
-
-                li.appendChild(link);
-                repoList.appendChild(li);
-            });
-        })
-        .catch(error => {
-            repoList.innerHTML = "";
-            const li = document.createElement("li");
-            li.textContent = "Error loading repository list.";
-            repoList.appendChild(li);
-            console.error(error);
-        });
+      data.accounts.forEach(acc => {
+        const li = document.createElement("li");
+        const link = document.createElement("a");
+        link.href = acc.url;
+        link.textContent = acc.url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        li.appendChild(link);
+        list.appendChild(li);
+      });
+    });
 </script>
 
 </body>
