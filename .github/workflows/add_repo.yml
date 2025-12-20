@@ -17,16 +17,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Parse issue and extract account URL
+      - name: Parse issue body and extract account URL
         id: parse
         run: |
-          ACCOUNT_URL=$(jq -r '.issue.fields.account_url' "$GITHUB_EVENT_PATH" | xargs)
-          
+          # Read the issue body
+          ISSUE_BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH")
+
+          # Extract the URL from the issue body
+          ACCOUNT_URL=$(echo "$ISSUE_BODY" \
+            | grep -A1 "GitHub account URL" \
+            | tail -n1 \
+            | xargs)
+
+          # Validate GitHub user account URL
           if [[ -z "$ACCOUNT_URL" || ! "$ACCOUNT_URL" =~ ^https://github\.com/[^/]+/?$ ]]; then
             echo "Invalid GitHub account URL: $ACCOUNT_URL"
             exit 1
           fi
-          
+
           echo "ACCOUNT_URL=$ACCOUNT_URL" >> $GITHUB_ENV
 
       - name: Ensure accounts.json exists
@@ -43,7 +51,7 @@ jobs:
             exit 0
           fi
 
-          # Append new account
+          # Append the account
           jq --arg url "$ACCOUNT_URL" '.accounts += [{"url": $url}]' accounts.json > accounts.tmp.json
           mv accounts.tmp.json accounts.json
 
@@ -55,7 +63,7 @@ jobs:
           git commit -m "Add GitHub account: $ACCOUNT_URL" || echo "No changes to commit"
           git push
 
-      - name: Close issue using GH CLI
+      - name: Close issue using GitHub CLI
         run: |
           gh issue close ${{ github.event.issue.number }} \
             --comment "✅ This GitHub account has been approved and added to the list. Thanks for submitting!"
