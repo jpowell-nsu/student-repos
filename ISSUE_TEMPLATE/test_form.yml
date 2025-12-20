@@ -1,7 +1,0 @@
-name: Test Form
-description: Test issue form
-body:
-  - type: input
-    id: test
-    attributes:
-      label: Test field
