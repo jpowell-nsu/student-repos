@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GitHub Repository List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 40px auto;
+            line-height: 1.6;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        input[type="url"] {
+            width: 80%;
+            padding: 8px;
+        }
+
+        button {
+            padding: 8px 12px;
+            margin-left: 5px;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>GitHub Repository List</h1>
+
+<p>
+Submit your GitHub repository below to have it listed.
+If you would like your repository removed, email me.
+</p>
+
+<form id="repoForm">
+    <input type="url" id="repoUrl" placeholder="https://github.com/username/repository" required>
+    <button type="submit">Add</button>
+</form>
+
+<ul id="repoList"></ul>
+
+<script>
+    const form = document.getElementById("repoForm");
+    const repoList = document.getElementById("repoList");
+
+    form.addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const url = document.getElementById("repoUrl").value.trim();
+        if (!url) return;
+
+        const li = document.createElement("li");
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.textContent = url;
+        link.target = "_blank";
+
+        li.appendChild(link);
+        repoList.appendChild(li);
+
+        form.reset();
+    });
+</script>
+
+</body>
+</html>
