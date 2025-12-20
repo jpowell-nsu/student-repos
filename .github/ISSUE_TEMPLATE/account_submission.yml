@@ -5,6 +5,15 @@ labels: ["account-submission"]
 
 body:
   - type: input
+    id: name
+    attributes:
+      label: Your name
+      placeholder: John Doe
+    validations:
+      required: true
+
+body:
+  - type: input
     id: account_url
     attributes:
       label: GitHub account URL
