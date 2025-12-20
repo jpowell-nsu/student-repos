@@ -2,12 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>GitHub Repository List</title>
+    <title>Approved GitHub Repositories</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 700px;
+            max-width: 800px;
             margin: 40px auto;
+            padding: 0 20px;
             line-height: 1.6;
         }
 
@@ -15,24 +18,34 @@
             text-align: center;
         }
 
-        form {
-            margin-bottom: 20px;
+        .actions {
+            text-align: center;
+            margin-bottom: 30px;
         }
 
-        input[type="url"] {
-            width: 80%;
-            padding: 8px;
+        .actions a {
+            display: inline-block;
+            padding: 10px 16px;
+            background-color: #24292e;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
         }
 
-        button {
-            padding: 8px 12px;
+        .actions a:hover {
+            background-color: #444;
         }
 
         ul {
             padding-left: 20px;
         }
 
+        li {
+            margin-bottom: 10px;
+        }
+
         .note {
+            margin-top: 40px;
             font-size: 0.9em;
             color: #555;
         }
@@ -40,68 +53,65 @@
 </head>
 <body>
 
-<h1>GitHub Repository List</h1>
+<h1>Approved GitHub Repositories</h1>
 
-<p>
-Submit your GitHub repository to be added to the list.
-If you would like your repository removed, please email me with the repository URL.
-</p>
 
-<form id="repoForm">
-    <input
-        type="url"
-        id="repoUrl"
-        placeholder="https://github.com/username/repository"
-        required
-    >
-    <button type="submit">Submit</button>
-</form>
+ <!--   https://github.com/jpowell-nsu/student-repos/blob/main/ISSUE_TEMPLATE/repo_submission.yml -->
+<div class="actions">
+    <a href="https://github.com/jpowell-nsu/student-repos/issues/new?template=repo_submission.yml">
+        Submit a Repository
+    </a>
+</div>
+
+<ul id="repoList">
+    <li>Loading repositories…</li>
+</ul>
 
 <p class="note">
+If you would like your repository removed from this list, please email me with the repository URL.
 Submissions are reviewed before being added.
 </p>
 
-<ul id="repoList"></ul>
-
 <script>
     const repoList = document.getElementById("repoList");
-    const form = document.getElementById("repoForm");
 
     fetch("repos.json")
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Failed to load repos.json");
+            }
+            return response.json();
+        })
         .then(data => {
+            repoList.innerHTML = "";
+
+            if (!data.repositories || data.repositories.length === 0) {
+                const li = document.createElement("li");
+                li.textContent = "No repositories have been approved yet.";
+                repoList.appendChild(li);
+                return;
+            }
+
             data.repositories.forEach(repo => {
                 const li = document.createElement("li");
                 const link = document.createElement("a");
 
                 link.href = repo.url;
-                link.textContent = repo.name || repo.url;
+                link.textContent = repo.name;
                 link.target = "_blank";
+                link.rel = "noopener noreferrer";
 
                 li.appendChild(link);
                 repoList.appendChild(li);
             });
         })
         .catch(error => {
-            console.error("Error loading repositories:", error);
+            repoList.innerHTML = "";
+            const li = document.createElement("li");
+            li.textContent = "Error loading repository list.";
+            repoList.appendChild(li);
+            console.error(error);
         });
-
-    form.addEventListener("submit", function (event) {
-        event.preventDefault();
-
-        const url = document.getElementById("repoUrl").value.trim();
-
-        if (!url.includes("github.com")) {
-            alert("Please submit a valid GitHub repository URL.");
-            return;
-        }
-
-        alert(
-            "Thank you. Your repository has been submitted for review."
-        );
-
-        form.reset();
-    });
 </script>
 
 </body>
