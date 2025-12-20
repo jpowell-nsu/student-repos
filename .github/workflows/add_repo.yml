@@ -61,7 +61,7 @@ jobs:
           git push
 
       - name: Close issue after approval
-        uses: peter-evans/close-issue@v4
+        uses: peter-evans/close-issue@v3
         with:
           issue-number: ${{ github.event.issue.number }}
           comment: "This GitHub account has been approved and added to the list."
