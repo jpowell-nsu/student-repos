@@ -1,0 +1,13 @@
+name: GitHub Account Submission
+description: Submit your GitHub account to be added to the list
+title: "GitHub Account Submission: "
+labels: ["account-submission"]
+
+body:
+  - type: input
+    id: account_url
+    attributes:
+      label: GitHub account URL
+      placeholder: https://github.com/username
+    validations:
+      required: true
