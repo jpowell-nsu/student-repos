@@ -1,3 +1,8 @@
 {
-  "accounts": []
+  "accounts": [
+    {
+      "name": "### Your name",
+      "url": "https://github.com/jpowell-nsu"
+    }
+  ]
 }
