@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>CIS Student and Faculty GitHub Accounts</title>
@@ -55,60 +56,64 @@
     }
   </style>
 </head>
+
 <body>
 
-<h1>CIS Student and Faculty GitHub Accounts</h1>
-<p class="note">
-  The list below includes GitHub accounts that students and faculty have chosen to share. Students are encouraged to consider sharing their accounts as a way to showcase their work and explore how public repositories can support future internship or employment opportunities.
-</p>
-  
-<div class="actions">
-  <a href="https://github.com/jpowell-nsu/student-repos/issues/new?template=account_submission.yml">
-    Submit Your GitHub Account
-  </a>
-</div>
+  <h1>CIS Student and Faculty GitHub Accounts</h1>
+  <p class="note">
+    The list below includes GitHub accounts that students and faculty have chosen to share. Students are encouraged to
+    consider sharing their accounts as a way to showcase their work and explore how public repositories can support
+    future internship or employment opportunities.
+  </p>
 
-<p class="note">
-  After submitting your account, it may take a short time to appear due to GitHub Pages caching. To remove or edit your account from the list, please email powellja@nsula.edu.
-</p>  
+  <div class="actions">
+    <a href="https://github.com/jpowell-nsu/student-repos/issues/new?template=account_submission.yml">
+      Submit Your GitHub Account
+    </a>
+  </div>
 
-<ul id="accountList">
-  <li>Loading accounts…</li>
-</ul>
+  <p class="note">
+    After submitting your account, it may take a short time to appear due to GitHub Pages. To remove or edit
+    your account from the list, please email powellja@nsula.edu.
+  </p>
 
-<script>
-const list = document.getElementById("accountList");
-fetch("accounts.json")
-  .then(r => r.json())
-  .then(data => {
-    list.innerHTML = "";
+  <ul id="accountList">
+    <li>Loading accounts…</li>
+  </ul>
 
-    if (!data.accounts || data.accounts.length === 0) {
-      const li = document.createElement("li");
-      li.textContent = "No accounts approved yet.";
-      list.appendChild(li);
-      return;
-    }
+  <script>
+    const list = document.getElementById("accountList");
+    fetch("accounts.json")
+      .then(r => r.json())
+      .then(data => {
+        list.innerHTML = "";
 
-    // Sort alphabetically by name
-    data.accounts.sort((a, b) => a.name.localeCompare(b.name));
+        if (!data.accounts || data.accounts.length === 0) {
+          const li = document.createElement("li");
+          li.textContent = "No accounts approved yet.";
+          list.appendChild(li);
+          return;
+        }
 
-    data.accounts.forEach(acc => {
-      const li = document.createElement("li");
-      const link = document.createElement("a");
-      link.href = acc.url;
-      link.textContent = `${acc.name} (${acc.url.replace('https://github.com/', '')})`;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      li.appendChild(link);
-      list.appendChild(li);
-    });
-  })
-  .catch(err => {
-    list.innerHTML = "<li>Error loading accounts.</li>";
-    console.error(err);
-  });
-</script>
-  
+        // Sort alphabetically by name
+        data.accounts.sort((a, b) => a.name.localeCompare(b.name));
+
+        data.accounts.forEach(acc => {
+          const li = document.createElement("li");
+          const link = document.createElement("a");
+          link.href = acc.url;
+          link.textContent = `${acc.name} (${acc.url.replace('https://github.com/', '')})`;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          li.appendChild(link);
+          list.appendChild(li);
+        });
+      })
+      .catch(err => {
+        list.innerHTML = "<li>Error loading accounts.</li>";
+        console.error(err);
+      });
+  </script>
 </body>
+
 </html>
